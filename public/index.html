@@ -88,7 +88,7 @@
 <section class="admin-content">
 <h1>&#1604;&#1608;&#1581;&#1577; &#1575;&#1604;&#1573;&#1583;&#1575;&#1585;&#1577;</h1>
 
-<div class="toolbar">
+<div class="stats-grid"><div class="stat-card"><span>&#1573;&#1580;&#1605;&#1575;&#1604;&#1610; &#1575;&#1604;&#1591;&#1604;&#1576;&#1575;&#1578;</span><strong id="statTotal">0</strong></div><div class="stat-card"><span>Gemini</span><strong id="statGemini">0</strong></div><div class="stat-card"><span>ChatGPT</span><strong id="statChatgpt">0</strong></div><div class="stat-card"><span>&#1594;&#1610;&#1585; &#1605;&#1603;&#1578;&#1605;&#1604;</span><strong id="statUndone">0</strong></div><div class="stat-card"><span>&#1605;&#1603;&#1578;&#1605;&#1604;</span><strong id="statDone">0</strong></div></div><div class="toolbar">
 <input id="searchInput" class="search-input" placeholder="&#1575;&#1604;&#1576;&#1581;&#1579; &#1576;&#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1571;&#1608; &#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;" oninput="renderSubmissions()">
 <div class="filters"><button class="status-filter active" onclick="setFilter('all')" id="filter-all">&#1575;&#1604;&#1603;&#1604;</button><button class="status-filter" onclick="setFilter('undone')" id="filter-undone">&#1594;&#1610;&#1585; &#1605;&#1603;&#1578;&#1605;&#1604;</button><button class="status-filter" onclick="setFilter('done')" id="filter-done">&#1605;&#1603;&#1578;&#1605;&#1604;</button></div><div class="filters"><button class="fix-filter active" onclick="setFixFilter('all')" id="fix-all">&#1575;&#1604;&#1603;&#1604;</button><button class="fix-filter" onclick="setFixFilter('gemini')" id="fix-gemini">Gemini</button><button class="fix-filter" onclick="setFixFilter('chatgpt')" id="fix-chatgpt">ChatGPT</button></div></div><div class="desktop-table">
 <table>
@@ -105,5 +105,6 @@
 <script src="/script.js"></script>
 </body>
 </html>
+
 
 

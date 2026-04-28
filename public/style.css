@@ -64,3 +64,38 @@ input:focus{border-color:#38bdff;box-shadow:0 0 0 4px rgba(56,189,248,.14)}
   th,td{text-align:right;padding:16px;border-bottom:1px solid rgba(255,255,255,.08);color:#d8eeff;font-size:14px}
   th{color:white}
 }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.stat-card {
+  background: rgba(9, 25, 66, 0.84);
+  border: 1px solid rgba(62, 190, 255, 0.3);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.18);
+}
+
+.stat-card span {
+  display: block;
+  color: #a9c7e8;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.stat-card strong {
+  display: block;
+  color: #38bdff;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+@media (min-width: 760px) {
+  .stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
