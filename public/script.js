@@ -1,4 +1,7 @@
-const API = "/api";
+const SUPABASE_URL = "https://vbkhiecpopyjkcraykcr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_E-BQWEsInw0-zcJylvgCMg_mA0m1ZlA";
+const API = SUPABASE_URL + "/rest/v1/submissions";
+
 const ADMIN_USERNAME = "Admin";
 const ADMIN_PASSWORD = "Admin@2026";
 
@@ -7,15 +10,10 @@ let submissions = [];
 let currentFilter = "all";
 let currentFixFilter = "all";
 
-const AR = {
-  needData: "\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0623\u0648 \u0631\u0642\u0645 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643.",
-  needFix: "\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0623\u062d\u062f \u0627\u0644\u062d\u0644\u0648\u0644.",
-  sendError: "\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u0625\u0631\u0633\u0627\u0644. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.",
-  badLogin: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629.",
-  done: "\u0645\u0643\u062a\u0645\u0644",
-  undone: "\u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644",
-  markDone: "\u062a\u062d\u062f\u064a\u062f \u0643\u0645\u0643\u062a\u0645\u0644",
-  completed: "\u062a\u0645 \u0627\u0644\u0625\u0646\u062c\u0627\u0632"
+const headers = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": "Bearer " + SUPABASE_KEY,
+  "Content-Type": "application/json"
 };
 
 function showForm() {
@@ -25,9 +23,7 @@ function showForm() {
 
 function selectFix(button, fix) {
   selectedFix = fix;
-  document.querySelectorAll(".option").forEach(function(btn) {
-    btn.classList.remove("selected");
-  });
+  document.querySelectorAll(".option").forEach(btn => btn.classList.remove("selected"));
   button.classList.add("selected");
 }
 
@@ -41,28 +37,33 @@ async function submitRequest(event) {
   error.textContent = "";
 
   if (!email && !subscriptionNumber) {
-    error.textContent = AR.needData;
+    error.textContent = "???? ????? ?????? ?????????? ?? ??? ????????.";
     return;
   }
 
   if (!selectedFix) {
-    error.textContent = AR.needFix;
+    error.textContent = "???? ?????? ??? ??????.";
     return;
   }
 
   try {
-    const res = await fetch(API + "/submissions", {
+    const res = await fetch(API, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, subscriptionNumber, selectedFix })
+      headers,
+      body: JSON.stringify({
+        email: email,
+        subscription_number: subscriptionNumber,
+        selected_fix: selectedFix,
+        status: "undone"
+      })
     });
 
-    if (!res.ok) throw new Error("bad response");
+    if (!res.ok) throw new Error();
 
     document.getElementById("formCard").classList.add("hidden");
     document.getElementById("successCard").classList.remove("hidden");
-  } catch (e) {
-    error.textContent = AR.sendError;
+  } catch {
+    error.textContent = "??? ??? ????? ???????. ???? ???????? ??? ????.";
   }
 }
 
@@ -77,7 +78,7 @@ function loginAdmin(event) {
     localStorage.setItem("adminLoggedIn", "yes");
     window.location.href = "/admin";
   } else {
-    error.textContent = AR.badLogin;
+    error.textContent = "??? ???????? ?? ???? ?????? ??? ?????.";
   }
 }
 
@@ -87,7 +88,11 @@ function logoutAdmin() {
 }
 
 async function loadSubmissions() {
-  const res = await fetch(API + "/submissions");
+  const res = await fetch(API + "?select=*&order=created_at.desc", {
+    method: "GET",
+    headers
+  });
+
   submissions = await res.json();
   renderSubmissions();
 }
@@ -95,10 +100,7 @@ async function loadSubmissions() {
 function setFilter(filter) {
   currentFilter = filter;
 
-  document.querySelectorAll(".status-filter").forEach(function(btn) {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".status-filter").forEach(btn => btn.classList.remove("active"));
   const btn = document.getElementById("filter-" + filter);
   if (btn) btn.classList.add("active");
 
@@ -108,10 +110,7 @@ function setFilter(filter) {
 function setFixFilter(filter) {
   currentFixFilter = filter;
 
-  document.querySelectorAll(".fix-filter").forEach(function(btn) {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".fix-filter").forEach(btn => btn.classList.remove("active"));
   const btn = document.getElementById("fix-" + filter);
   if (btn) btn.classList.add("active");
 
@@ -126,47 +125,47 @@ function renderSubmissions() {
 
   if (!tableBody || !mobileCards) return;
 
-  const filtered = submissions.filter(function(item) {
+  const filtered = submissions.filter(item => {
     const email = (item.email || "").toLowerCase();
-    const subscription = (item.subscriptionNumber || "").toLowerCase();
-    const fixText = (item.selectedFix || "").toLowerCase();
+    const subscription = (item.subscription_number || "").toLowerCase();
+    const fixText = (item.selected_fix || "").toLowerCase();
 
-    const matchesSearch = email.includes(q) || subscription.includes(q);
-    const matchesStatus = currentFilter === "all" || item.status === currentFilter;
-    const matchesFix = currentFixFilter === "all" || fixText.includes(currentFixFilter);
-
-    return matchesSearch && matchesStatus && matchesFix;
+    return (
+      (email.includes(q) || subscription.includes(q)) &&
+      (currentFilter === "all" || item.status === currentFilter) &&
+      (currentFixFilter === "all" || fixText.includes(currentFixFilter))
+    );
   });
 
   tableBody.innerHTML = "";
   mobileCards.innerHTML = "";
 
-  filtered.forEach(function(item) {
+  filtered.forEach(item => {
     const statusClass = item.status === "done" ? "done" : "undone";
-    const statusText = item.status === "done" ? AR.done : AR.undone;
-    const created = new Date(item.createdAt).toLocaleString();
+    const statusText = item.status === "done" ? "?????" : "??? ?????";
+    const created = new Date(item.created_at).toLocaleString();
 
     const actionHtml = item.status === "undone"
-      ? '<button class="done-btn" onclick="markDone(\'' + item.id + '\')">' + AR.markDone + '</button>'
-      : '<span class="completed-text">' + AR.completed + '</span>';
+      ? '<button class="done-btn" onclick="markDone(\'' + item.id + '\')">????? ?????</button>'
+      : '<span class="completed-text">?? ???????</span>';
 
     tableBody.innerHTML +=
       "<tr><td>" + (item.email || "-") + "</td><td>" +
-      (item.subscriptionNumber || "-") + "</td><td>" +
-      item.selectedFix + '</td><td><span class="status ' +
+      (item.subscription_number || "-") + "</td><td>" +
+      item.selected_fix + '</td><td><span class="status ' +
       statusClass + '">' + statusText + "</span></td><td>" +
       created + "</td><td>" + actionHtml + "</td></tr>";
 
     const mobileAction = item.status === "undone"
-      ? '<button class="done-btn full" onclick="markDone(\'' + item.id + '\')">' + AR.markDone + '</button>'
-      : '<button class="completed-btn full">' + AR.done + '</button>';
+      ? '<button class="done-btn full" onclick="markDone(\'' + item.id + '\')">????? ?????</button>'
+      : '<button class="completed-btn full">?????</button>';
 
     mobileCards.innerHTML +=
       '<div class="submission-card"><div class="card-top"><span class="status ' +
       statusClass + '">' + statusText + "</span><span>" + created +
       "</span></div><p><strong>Email:</strong> " + (item.email || "-") +
-      "</p><p><strong>Subscription:</strong> " + (item.subscriptionNumber || "-") +
-      "</p><p><strong>Fix:</strong> " + item.selectedFix +
+      "</p><p><strong>Subscription:</strong> " + (item.subscription_number || "-") +
+      "</p><p><strong>Fix:</strong> " + item.selected_fix +
       "</p>" + mobileAction + "</div>";
   });
 
@@ -174,7 +173,12 @@ function renderSubmissions() {
 }
 
 async function markDone(id) {
-  await fetch(API + "/submissions/" + id + "/done", { method: "PATCH" });
+  await fetch(API + "?id=eq." + id, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ status: "done" })
+  });
+
   await loadSubmissions();
 }
 
@@ -205,4 +209,3 @@ function router() {
 }
 
 router();
-
