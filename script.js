@@ -6,6 +6,8 @@ const ADMIN_USERNAME = "Admin";
 const ADMIN_PASSWORD = "Admin@2026";
 
 let selectedFix = "";
+let duplicateEmail = "";
+let duplicateId = "";
 let submissions = [];
 let currentFilter = "all";
 let currentFixFilter = "all";
@@ -20,16 +22,22 @@ function el(id) {
   return document.getElementById(id);
 }
 
-function hideAllPages() {
-  ["clientPage", "loginPage", "adminPage"].forEach(id => {
+function showOnlyClientCard(cardId) {
+  ["noticeCard", "formCard", "successCard", "duplicateCard"].forEach(id => {
     const item = el(id);
     if (item) item.classList.add("hidden");
   });
+
+  el(cardId).classList.remove("hidden");
 }
 
 function route() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  hideAllPages();
+
+  ["clientPage", "loginPage", "adminPage"].forEach(id => {
+    const page = el(id);
+    if (page) page.classList.add("hidden");
+  });
 
   if (path === "/admin/login") {
     el("loginPage").classList.remove("hidden");
@@ -51,17 +59,12 @@ function route() {
 }
 
 function showForm() {
-  el("noticeCard").classList.add("hidden");
-  el("formCard").classList.remove("hidden");
+  showOnlyClientCard("formCard");
 }
 
 function selectFix(button, fix) {
   selectedFix = fix;
-
-  document.querySelectorAll(".option").forEach(btn => {
-    btn.classList.remove("selected");
-  });
-
+  document.querySelectorAll(".option").forEach(btn => btn.classList.remove("selected"));
   button.classList.add("selected");
 }
 
@@ -85,47 +88,32 @@ async function submitRequest(event) {
   }
 
   try {
-    if (email) {
-      const check = await fetch(API + "?select=id,selected_fix&email=ilike." + encodeURIComponent(email), {
-        method: "GET",
-        headers
-      });
+    const check = await fetch(API + "?select=id,email,selected_fix,plan_locked&email=ilike." + encodeURIComponent(email), {
+      method: "GET",
+      headers
+    });
 
-      const existing = await check.json();
+    const existing = await check.json();
 
-      if (Array.isArray(existing) && existing.length > 0) {
-        const currentFix = existing[0].selected_fix || "-";
+    if (Array.isArray(existing) && existing.length > 0) {
+      const user = existing[0];
 
-        const wantsChange = confirm(
-          "لقد قمت بإرسال طلب مسبقًا بهذا البريد الإلكتروني.\n\n" +
-          "الحل الحالي: " + currentFix + "\n\n" +
-          "هل تريد تغيير طريقة التعويض إلى الخيار الجديد؟"
-        );
-
-        if (!wantsChange) {
-          error.textContent = "تم الاحتفاظ بطلبك السابق بدون تغيير.";
-          return;
-        }
-
-        const update = await fetch(API + "?id=eq." + existing[0].id, {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({
-  selected_fix: selectedFix,
-  subscription_number: subscriptionNumber,
-  status: "undone",
-  change_note: "تم تغيير الخطة",
-  plan_locked: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-})
-        });
-
-        if (!update.ok) throw new Error("update failed");
-
-        showSuccessMessage(true);
+      if (user.plan_locked === true) {
+        el("duplicateTitle").textContent = "لا يمكن تغيير الطلب مرة أخرى";
+        el("duplicateMessage").textContent = "لقد قمت بتغيير طريقة التعويض مسبقًا. لا يمكن تعديل الطلب مرة أخرى، وسيتم اعتماد آخر اختيار قمت به.";
+        el("changeFixBtn").classList.add("hidden");
+        showOnlyClientCard("duplicateCard");
         return;
       }
+
+      duplicateEmail = email;
+      duplicateId = user.id;
+
+      el("duplicateTitle").textContent = "هذا البريد الإلكتروني لديه طلب سابق";
+      el("duplicateMessage").textContent = "لقد قمت بإرسال طلب مسبقًا بهذا البريد الإلكتروني. يمكنك تغيير طريقة التعويض مرة واحدة فقط.";
+      el("changeFixBtn").classList.remove("hidden");
+      showOnlyClientCard("duplicateCard");
+      return;
     }
 
     const res = await fetch(API, {
@@ -136,7 +124,8 @@ async function submitRequest(event) {
         subscription_number: subscriptionNumber,
         selected_fix: selectedFix,
         status: "undone",
-        change_note: ""
+        change_note: "",
+        plan_locked: false
       })
     });
 
@@ -149,20 +138,63 @@ async function submitRequest(event) {
   }
 }
 
-function showSuccessMessage(changed) {
-  const title = el("successTitle");
-  const message = el("successMessage");
+function startChangeFix() {
+  showOnlyClientCard("formCard");
+  el("email").value = duplicateEmail;
+  el("email").readOnly = true;
+  el("error").textContent = "اختر طريقة التعويض الجديدة، ثم اضغط إرسال الطلب. يمكنك تغييرها مرة واحدة فقط.";
+}
 
-  if (selectedFix.toLowerCase().includes("gemini")) {
-    title.textContent = changed ? "تم تغيير طلبك إلى Gemini بنجاح" : "تم استلام طلب Gemini بنجاح";
-    message.textContent = "يرجى تفقد بريدك الإلكتروني، ستصلك دعوة لتفعيل الشهر الأول من اشتراك Gemini. وبعد انتهاء الشهر الأول، سنرسل لك دعوة جديدة للشهر الثاني. في حال واجهت أي مشكلة، يرجى التواصل معنا عبر صفحتنا الرسمية.";
-  } else {
-    title.textContent = changed ? "تم تغيير طلبك إلى ChatGPT Plus بنجاح" : "تم استلام طلب ChatGPT Plus بنجاح";
-    message.textContent = "سنقوم بالتواصل معك عبر صفحتنا أو عبر البريد الإلكتروني خلال بضعة أيام. يرجى عدم تكرار الرسائل، وسيصلك إشعار مباشرة فور جاهزية الاشتراك.";
+async function submitChangeOrNew(event) {
+  event.preventDefault();
+
+  if (duplicateId) {
+    if (!selectedFix) {
+      el("error").textContent = "يرجى اختيار أحد الحلول.";
+      return;
+    }
+
+    const subscriptionNumber = el("subscriptionNumber").value.trim();
+
+    try {
+      const update = await fetch(API + "?id=eq." + duplicateId, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          selected_fix: selectedFix,
+          subscription_number: subscriptionNumber,
+          status: "undone",
+          change_note: "تم تغيير الخطة",
+          plan_locked: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      });
+
+      if (!update.ok) throw new Error("update failed");
+
+      showSuccessMessage(true);
+    } catch (err) {
+      console.error(err);
+      el("error").textContent = "حدث خطأ أثناء تغيير طريقة التعويض. يرجى المحاولة مرة أخرى.";
+    }
+
+    return;
   }
 
-  el("formCard").classList.add("hidden");
-  el("successCard").classList.remove("hidden");
+  await submitRequest(event);
+}
+
+function showSuccessMessage(changed) {
+  if (selectedFix.toLowerCase().includes("gemini")) {
+    el("successTitle").textContent = changed ? "تم تغيير طلبك إلى Gemini Pro بنجاح" : "تم استلام طلب Gemini Pro بنجاح";
+    el("successMessage").textContent = "يرجى تفقد بريدك الإلكتروني. ستصلك دعوة لتفعيل الشهر الأول من Gemini Pro خلال بضع ساعات. وبعد انتهاء الشهر الأول، سنرسل لك دعوة جديدة للشهر الثاني.";
+  } else {
+    el("successTitle").textContent = changed ? "تم تغيير طلبك إلى ChatGPT Plus بنجاح" : "تم استلام طلب ChatGPT Plus بنجاح";
+    el("successMessage").textContent = "سنقوم بالتواصل معك عبر صفحتنا أو عبر البريد الإلكتروني خلال بضعة أيام. يرجى عدم تكرار الرسائل، وسيصلك إشعار فور جاهزية الاشتراك.";
+  }
+
+  showOnlyClientCard("successCard");
 }
 
 function loginAdmin(event) {
@@ -197,27 +229,17 @@ async function loadSubmissions() {
 
 function setFilter(filter) {
   currentFilter = filter;
-
-  document.querySelectorAll(".status-filter").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".status-filter").forEach(btn => btn.classList.remove("active"));
   const btn = el("filter-" + filter);
   if (btn) btn.classList.add("active");
-
   renderSubmissions();
 }
 
 function setFixFilter(filter) {
   currentFixFilter = filter;
-
-  document.querySelectorAll(".fix-filter").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".fix-filter").forEach(btn => btn.classList.remove("active"));
   const btn = el("fix-" + filter);
   if (btn) btn.classList.add("active");
-
   renderSubmissions();
 }
 
@@ -322,7 +344,8 @@ document.addEventListener("DOMContentLoaded", function () {
   route();
 
   if (el("continueBtn")) el("continueBtn").addEventListener("click", showForm);
-  if (el("requestForm")) el("requestForm").addEventListener("submit", submitRequest);
+  if (el("requestForm")) el("requestForm").addEventListener("submit", submitChangeOrNew);
+  if (el("changeFixBtn")) el("changeFixBtn").addEventListener("click", startChangeFix);
   if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
   if (el("logoutBtn")) el("logoutBtn").addEventListener("click", logoutAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
@@ -339,4 +362,3 @@ document.addEventListener("DOMContentLoaded", function () {
     btn.addEventListener("click", () => setFixFilter(btn.getAttribute("data-fixfilter")));
   });
 });
-
