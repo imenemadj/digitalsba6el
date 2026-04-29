@@ -72,12 +72,27 @@ window.submitRequest = async function (event) {
 
     if (!res.ok) throw new Error("submit failed");
 
-    document.getElementById("formCard").classList.add("hidden");
-    document.getElementById("successCard").classList.remove("hidden");
+    showCustomSuccess(selectedFix);
   } catch (e) {
     error.textContent = TXT.sendError;
   }
 };
+
+function showCustomSuccess(fix) {
+  const title = document.querySelector("#successCard h1");
+  const message = document.querySelector("#successCard p");
+
+  if ((fix || "").toLowerCase().includes("gemini")) {
+    title.textContent = "تم استلام طلب Gemini بنجاح";
+    message.textContent = "يرجى تفقد بريدك الإلكتروني خلال بضع ساعات، ستصلك تفاصيل اشتراك Gemini الخاص بك. في حال واجهت أي مشكلة، يرجى التواصل معنا عبر صفحتنا الرسمية.";
+  } else {
+    title.textContent = "تم استلام طلب ChatGPT Plus بنجاح";
+    message.textContent = "تفعيل اشتراك ChatGPT Plus قد يستغرق بضعة أيام. نرجو منكم عدم تكرار الرسائل على صفحاتنا، وسيصلكم بريد إلكتروني مباشرة فور جاهزية الاشتراك. شكرًا لصبركم وتفهمكم.";
+  }
+
+  document.getElementById("formCard").classList.add("hidden");
+  document.getElementById("successCard").classList.remove("hidden");
+}
 
 window.loginAdmin = function (event) {
   event.preventDefault();
@@ -269,5 +284,7 @@ function router() {
 }
 
 router();
+
+
 
 
