@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://vbkhiecpopyjkcraykcr.supabase.co";
+﻿const SUPABASE_URL = "https://vbkhiecpopyjkcraykcr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_E-BQWEsInw0-zcJylvgCMg_mA0m1ZlA";
 const API = SUPABASE_URL + "/rest/v1/submissions";
 
@@ -243,7 +243,7 @@ window.markDone = async function (id) {
 };
 
 function router() {
-  const path = window.location.pathname;
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
 
   document.getElementById("clientPage").classList.add("hidden");
   document.getElementById("loginPage").classList.add("hidden");
@@ -269,4 +269,5 @@ function router() {
 }
 
 router();
+
 
