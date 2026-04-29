@@ -3,105 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>&#1576;&#1608;&#1575;&#1576;&#1577; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;&#1575;&#1578;</title>
-<link rel="icon" type="image/png" href="/icons/favicon.png"><link rel="icon" type="image/png" href="/icons/favicon.png"><link rel="stylesheet" href="/style.css">
+<title>بوابة الاشتراكات</title>
+<link rel="icon" type="image/png" href="/icons/favicon.png?v=9999">
+<link rel="stylesheet" href="/style.css?v=9999">
 </head>
 <body>
 
 <main id="clientPage" class="page rtl">
-<img src="/icons/logo.png" class="logo" onerror="this.style.display='none'">
+<img src="/icons/logo.png?v=9999" class="logo" onerror="this.style.display='none'">
 
 <section id="noticeCard" class="card notice-card">
-<span class="badge">&#1573;&#1588;&#1593;&#1575;&#1585; &#1605;&#1607;&#1605;</span>
-<h1>&#1573;&#1588;&#1593;&#1575;&#1585; &#1605;&#1607;&#1605; &#1604;&#1605;&#1578;&#1575;&#1576;&#1593;&#1610;&#1606;&#1575;</h1>
+<span class="badge">إشعار مهم</span>
+<h1>إشعار مهم لمتابعينا</h1>
 
-<img src="/icons/post.png" class="problem-image" onerror="this.style.display='none'"><p>نؤكد أن أمانتكم عندنا غالية جدًا، وهي مسؤولية نتحملها بكل جدية. خلال أكثر من 7 أشهر من العمل وخدمة أكثر من 7000 عميل، بنينا ثقة قائمة على الصدق والالتزام، وما حدث مؤخرًا هو ظرف طارئ لا يعكس طريقتنا ولا مبادئنا.</p><p>نطمئنكم أننا لم ولن نتجاهلكم، ولو كانت نيتنا غير ذلك لما استمررنا في الرد على الجميع. التأخر الحالي في الرد عليكم سببه الضغط الكبير في الرسائل فقط، ولهذا أنشأنا هذا الموقع لتنظيم العملية وتسريع الحل، نرجو منكم تعبئة البيانات في الصفحة المخصصة.</p><p>كما نوضح أن المشكلة خارج عن إرادتنا، حيث قامت شركة ChatGPT بإلغاء ميزة Business، وألغت كل الحسابات ولم يعد بالإمكان توفيرها بنفس الأسعار.</p><p>نحن نعمل 24/24 لإيجاد حل مناسب يرضي الجميع، ونؤكد مجددًا أن ثقتكم وأمانتكم فوق كل اعتبار لدينا. نشكركم على صبركم وتفهمكم.</p>
+<img src="/icons/post.png?v=9999" class="problem-image" onerror="this.onerror=null;this.src='/icons/post.jpg?v=9999';">
 
-<button class="primary-btn" onclick="showForm()">&#1605;&#1578;&#1575;&#1576;&#1593;&#1577;</button>
+<p>نؤكد أن أمانتكم عندنا غالية جدًا، وهي مسؤولية نتحملها بكل جدية. خلال أكثر من 7 أشهر من العمل وخدمة أكثر من 7000 عميل، بنينا ثقة قائمة على الصدق والالتزام، وما حدث مؤخرًا هو ظرف طارئ لا يعكس طريقتنا ولا مبادئنا.</p>
+
+<p>نطمئنكم أننا لم ولن نتجاهلكم، ولو كانت نيتنا غير ذلك لما استمررنا في الرد على الجميع. التأخر الحالي في الرد عليكم سببه الضغط الكبير في الرسائل فقط، ولهذا أنشأنا هذا الموقع لتنظيم العملية وتسريع الحل، نرجو منكم تعبئة البيانات في الصفحة المخصصة.</p>
+
+<p>كما نوضح أن المشكلة خارج عن إرادتنا، حيث قامت شركة ChatGPT بإلغاء ميزة Business، وألغت كل الحسابات ولم يعد بالإمكان توفيرها بنفس الأسعار.</p>
+
+<p>نحن نعمل 24/24 لإيجاد حل مناسب يرضي الجميع، ونؤكد مجددًا أن ثقتكم وأمانتكم فوق كل اعتبار لدينا. نشكركم على صبركم وتفهمكم.</p>
+
+<button class="primary-btn" id="continueBtn" type="button">متابعة</button>
 </section>
 
 <section id="formCard" class="card hidden">
-<h1>&#1573;&#1585;&#1587;&#1575;&#1604; &#1605;&#1593;&#1604;&#1608;&#1605;&#1575;&#1578; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;</h1>
-<p class="muted">&#1571;&#1583;&#1582;&#1604; &#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1575;&#1604;&#1573;&#1604;&#1603;&#1578;&#1585;&#1608;&#1606;&#1610; &#1571;&#1608; &#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;&#1548; &#1579;&#1605; &#1575;&#1582;&#1578;&#1585; &#1575;&#1604;&#1581;&#1604; &#1575;&#1604;&#1605;&#1606;&#1575;&#1587;&#1576;.</p>
+<h1>إرسال معلومات الاشتراك</h1>
+<p class="muted">أدخل البريد الإلكتروني أو رقم الاشتراك، ثم اختر الحل المناسب.</p>
 
-<form onsubmit="submitRequest(event)">
-<label>&#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1575;&#1604;&#1573;&#1604;&#1603;&#1578;&#1585;&#1608;&#1606;&#1610;</label>
+<form id="requestForm">
+<label>البريد الإلكتروني</label>
 <input id="email" type="email" placeholder="example@email.com">
 
-<label>&#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;</label>
-<input id="subscriptionNumber" type="text" placeholder="&#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;">
+<label>رقم الاشتراك</label>
+<input id="subscriptionNumber" type="text" placeholder="رقم الاشتراك">
 
-<label>&#1575;&#1582;&#1578;&#1585; &#1575;&#1604;&#1581;&#1604; &#1575;&#1604;&#1605;&#1606;&#1575;&#1587;&#1576;</label>
+<label>اختر الحل المناسب</label>
 
 <div class="options">
-<button type="button" class="option" onclick="selectFix(this, 'Gemini Pro - 1 month - instant activation')">
+<button type="button" class="option" data-fix="Gemini Pro - أربعة أشهر - التفعيل خلال بضع ساعات">
 <strong>Gemini Pro</strong>
-<span>&#1588;&#1607;&#1585; &#1608;&#1575;&#1581;&#1583;</span>
-<small>&#1578;&#1601;&#1593;&#1610;&#1604; &#1601;&#1608;&#1585;&#1610;</small>
+<span>أربعة أشهر</span>
+<small>سيصلك الاشتراك عبر البريد خلال بضع ساعات</small>
 </button>
 
-<button type="button" class="option" onclick="selectFix(this, 'ChatGPT Go / Plus - 3 months - takes a few days')">
+<button type="button" class="option" data-fix="ChatGPT Plus - ثلاثة أشهر - التفعيل خلال بضعة أيام">
 <strong>ChatGPT Plus</strong>
-<span>&#1579;&#1604;&#1575;&#1579;&#1577; &#1571;&#1588;&#1607;&#1585;</span>
-<small>&#1602;&#1583; &#1610;&#1587;&#1578;&#1594;&#1585;&#1602; &#1575;&#1604;&#1578;&#1601;&#1593;&#1610;&#1604; &#1576;&#1590;&#1593;&#1577; &#1571;&#1610;&#1575;&#1605;</small>
+<span>ثلاثة أشهر</span>
+<small>قد يستغرق التفعيل بضعة أيام</small>
 </button>
 </div>
 
 <p id="error" class="error"></p>
-<button class="primary-btn" type="submit">&#1573;&#1585;&#1587;&#1575;&#1604; &#1575;&#1604;&#1591;&#1604;&#1576;</button>
+<button class="primary-btn" type="submit">إرسال الطلب</button>
 </form>
 </section>
 
 <section id="successCard" class="card center hidden">
-<div class="success-icon">&#10003;</div>
-<h1>&#1578;&#1605; &#1573;&#1585;&#1587;&#1575;&#1604; &#1591;&#1604;&#1576;&#1603; &#1576;&#1606;&#1580;&#1575;&#1581;</h1>
-<p>&#1578;&#1605; &#1575;&#1587;&#1578;&#1604;&#1575;&#1605; &#1591;&#1604;&#1576;&#1603; &#1576;&#1606;&#1580;&#1575;&#1581;. &#1587;&#1610;&#1602;&#1608;&#1605; &#1601;&#1585;&#1610;&#1602;&#1606;&#1575; &#1576;&#1605;&#1585;&#1575;&#1580;&#1593;&#1578;&#1607;&#1548; &#1608;&#1587;&#1606;&#1578;&#1608;&#1575;&#1589;&#1604; &#1605;&#1593;&#1603; &#1602;&#1585;&#1610;&#1576;&#1611;&#1575; &#1593;&#1576;&#1585; &#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1575;&#1604;&#1573;&#1604;&#1603;&#1578;&#1585;&#1608;&#1606;&#1610; &#1604;&#1573;&#1576;&#1604;&#1575;&#1594;&#1603; &#1576;&#1578;&#1581;&#1583;&#1610;&#1579;&#1575;&#1578; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;.</p>
+<div class="success-icon">✓</div>
+<h1 id="successTitle">تم إرسال طلبك بنجاح</h1>
+<p id="successMessage">تم استلام طلبك بنجاح.</p>
 </section>
 </main>
 
 <main id="loginPage" class="page hidden">
 <section class="card">
-<h1>&#1578;&#1587;&#1580;&#1610;&#1604; &#1583;&#1582;&#1608;&#1604; &#1575;&#1604;&#1573;&#1583;&#1575;&#1585;&#1577;</h1>
-<form onsubmit="loginAdmin(event)">
-<label>&#1575;&#1587;&#1605; &#1575;&#1604;&#1605;&#1587;&#1578;&#1582;&#1583;&#1605;</label>
+<h1>تسجيل دخول الإدارة</h1>
+<form id="loginForm">
+<label>اسم المستخدم</label>
 <input id="adminUsername" type="text">
-<label>&#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585;</label>
+<label>كلمة المرور</label>
 <input id="adminPassword" type="password">
 <p id="loginError" class="error"></p>
-<button class="primary-btn" type="submit">&#1578;&#1587;&#1580;&#1610;&#1604; &#1575;&#1604;&#1583;&#1582;&#1608;&#1604;</button>
+<button class="primary-btn" type="submit">تسجيل الدخول</button>
 </form>
 </section>
 </main>
 
 <main id="adminPage" class="admin-page hidden rtl">
 <header class="admin-header">
-<img src="/icons/logo.png" class="admin-logo" onerror="this.style.display='none'">
-<button class="logout-btn" onclick="logoutAdmin()">&#1578;&#1587;&#1580;&#1610;&#1604; &#1575;&#1604;&#1582;&#1585;&#1608;&#1580;</button>
+<img src="/icons/logo.png?v=9999" class="admin-logo" onerror="this.style.display='none'">
+<button class="logout-btn" id="logoutBtn" type="button">تسجيل الخروج</button>
 </header>
 
 <section class="admin-content">
-<h1>&#1604;&#1608;&#1581;&#1577; &#1575;&#1604;&#1573;&#1583;&#1575;&#1585;&#1577;</h1>
+<h1>لوحة الإدارة</h1>
 
-<div class="stats-grid"><div class="stat-card"><span>&#1573;&#1580;&#1605;&#1575;&#1604;&#1610; &#1575;&#1604;&#1591;&#1604;&#1576;&#1575;&#1578;</span><strong id="statTotal">0</strong></div><div class="stat-card"><span>Gemini</span><strong id="statGemini">0</strong></div><div class="stat-card"><span>ChatGPT</span><strong id="statChatgpt">0</strong></div><div class="stat-card"><span>&#1594;&#1610;&#1585; &#1605;&#1603;&#1578;&#1605;&#1604;</span><strong id="statUndone">0</strong></div><div class="stat-card"><span>&#1605;&#1603;&#1578;&#1605;&#1604;</span><strong id="statDone">0</strong></div></div><div class="toolbar">
-<input id="searchInput" class="search-input" placeholder="&#1575;&#1604;&#1576;&#1581;&#1579; &#1576;&#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1571;&#1608; &#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1588;&#1578;&#1585;&#1575;&#1603;" oninput="renderSubmissions()">
-<div class="filters"><button class="status-filter active" onclick="setFilter('all')" id="filter-all">&#1575;&#1604;&#1603;&#1604;</button><button class="status-filter" onclick="setFilter('undone')" id="filter-undone">&#1594;&#1610;&#1585; &#1605;&#1603;&#1578;&#1605;&#1604;</button><button class="status-filter" onclick="setFilter('done')" id="filter-done">&#1605;&#1603;&#1578;&#1605;&#1604;</button></div><div class="filters"><button class="fix-filter active" onclick="setFixFilter('all')" id="fix-all">&#1575;&#1604;&#1603;&#1604;</button><button class="fix-filter" onclick="setFixFilter('gemini')" id="fix-gemini">Gemini</button><button class="fix-filter" onclick="setFixFilter('chatgpt')" id="fix-chatgpt">ChatGPT</button></div></div><div class="desktop-table">
+<div class="stats-grid">
+<div class="stat-card"><span>إجمالي الطلبات</span><strong id="statTotal">0</strong></div>
+<div class="stat-card"><span>Gemini</span><strong id="statGemini">0</strong></div>
+<div class="stat-card"><span>ChatGPT</span><strong id="statChatgpt">0</strong></div>
+<div class="stat-card"><span>غير مكتمل</span><strong id="statUndone">0</strong></div>
+<div class="stat-card"><span>مكتمل</span><strong id="statDone">0</strong></div>
+</div>
+
+<div class="toolbar">
+<input id="searchInput" class="search-input" placeholder="البحث بالبريد أو رقم الاشتراك">
+
+<div class="filters">
+<button class="status-filter active" type="button" data-status="all" id="filter-all">الكل</button>
+<button class="status-filter" type="button" data-status="undone" id="filter-undone">غير مكتمل</button>
+<button class="status-filter" type="button" data-status="done" id="filter-done">مكتمل</button>
+</div>
+
+<div class="filters">
+<button class="fix-filter active" type="button" data-fixfilter="all" id="fix-all">الكل</button>
+<button class="fix-filter" type="button" data-fixfilter="gemini" id="fix-gemini">Gemini</button>
+<button class="fix-filter" type="button" data-fixfilter="chatgpt" id="fix-chatgpt">ChatGPT</button>
+</div>
+</div>
+
+<div class="desktop-table">
 <table>
-<thead><tr><th>Email</th><th>Subscription</th><th>Fix</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+<thead>
+<tr>
+<th>البريد</th>
+<th>رقم الاشتراك</th>
+<th>الحل</th>
+<th>الحالة</th>
+<th>التاريخ</th>
+<th>الإجراء</th>
+</tr>
+</thead>
 <tbody id="tableBody"></tbody>
 </table>
 </div>
 
 <div id="mobileCards" class="mobile-cards"></div>
-<p id="emptyText" class="empty hidden">&#1604;&#1575; &#1578;&#1608;&#1580;&#1583; &#1591;&#1604;&#1576;&#1575;&#1578;.</p>
+<p id="emptyText" class="empty hidden">لا توجد طلبات.</p>
 </section>
 </main>
 
-<script src="/script.js"></script>
+<script src="/script.js?v=9999" defer></script>
 </body>
 </html>
-
-
-
-
-
-

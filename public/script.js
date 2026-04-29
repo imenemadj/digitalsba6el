@@ -16,50 +16,90 @@ const headers = {
   "Content-Type": "application/json"
 };
 
-const TXT = {
-  needData: "\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0623\u0648 \u0631\u0642\u0645 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643.",
-  needFix: "\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0623\u062d\u062f \u0627\u0644\u062d\u0644\u0648\u0644.",
-  sendError: "\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u0625\u0631\u0633\u0627\u0644. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.",`n  duplicateEmail: "\u0644\u0642\u062f \u0642\u0645\u062a \u0628\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0645\u0633\u0628\u0642\u064b\u0627 \u0628\u0647\u0630\u0627 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.",
-  badLogin: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629.",
-  done: "\u0645\u0643\u062a\u0645\u0644",
-  undone: "\u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644",
-  markDone: "\u062a\u062d\u062f\u064a\u062f \u0645\u0643\u062a\u0645\u0644",
-  completed: "\u062a\u0645 \u0627\u0644\u0625\u0646\u062c\u0627\u0632"
-};
+function el(id) {
+  return document.getElementById(id);
+}
 
-window.showForm = function () {
-  document.getElementById("noticeCard").classList.add("hidden");
-  document.getElementById("formCard").classList.remove("hidden");
-};
+function hideAllPages() {
+  el("clientPage").classList.add("hidden");
+  el("loginPage").classList.add("hidden");
+  el("adminPage").classList.add("hidden");
+}
 
-window.selectFix = function (button, fix) {
+function route() {
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+
+  hideAllPages();
+
+  if (path === "/admin/login") {
+    el("loginPage").classList.remove("hidden");
+    return;
+  }
+
+  if (path === "/admin") {
+    if (localStorage.getItem("adminLoggedIn") !== "yes") {
+      window.location.href = "/admin/login";
+      return;
+    }
+
+    el("adminPage").classList.remove("hidden");
+    loadSubmissions();
+    return;
+  }
+
+  el("clientPage").classList.remove("hidden");
+}
+
+function showForm() {
+  el("noticeCard").classList.add("hidden");
+  el("formCard").classList.remove("hidden");
+}
+
+function selectFix(button, fix) {
   selectedFix = fix;
+
   document.querySelectorAll(".option").forEach(function (btn) {
     btn.classList.remove("selected");
   });
-  button.classList.add("selected");
-};
 
-window.submitRequest = async function (event) {
+  button.classList.add("selected");
+}
+
+async function submitRequest(event) {
   event.preventDefault();
 
-  const email = document.getElementById("email").value.trim();
-  const subscriptionNumber = document.getElementById("subscriptionNumber").value.trim();
-  const error = document.getElementById("error");
+  const email = el("email").value.trim();
+  const subscriptionNumber = el("subscriptionNumber").value.trim();
+  const error = el("error");
 
   error.textContent = "";
 
   if (!email && !subscriptionNumber) {
-    error.textContent = TXT.needData;
+    error.textContent = "يرجى إدخال البريد الإلكتروني أو رقم الاشتراك.";
     return;
   }
 
   if (!selectedFix) {
-    error.textContent = TXT.needFix;
+    error.textContent = "يرجى اختيار أحد الحلول.";
     return;
   }
 
-  try {`n    if (email) {`n      const check = await fetch(API + "?select=id&email=eq." + encodeURIComponent(email), { method: "GET", headers: headers });`n      const existing = await check.json();`n      if (Array.isArray(existing) && existing.length > 0) {`n        error.textContent = TXT.duplicateEmail;`n        return;`n      }`n    }`n`n    const res = await fetch(API, {
+  try {
+    if (email) {
+      const check = await fetch(API + "?select=id&email=eq." + encodeURIComponent(email), {
+        method: "GET",
+        headers: headers
+      });
+
+      const existing = await check.json();
+
+      if (Array.isArray(existing) && existing.length > 0) {
+        error.textContent = "لقد قمت بإرسال طلب مسبقًا بهذا البريد الإلكتروني.";
+        return;
+      }
+    }
+
+    const res = await fetch(API, {
       method: "POST",
       headers: headers,
       body: JSON.stringify({
@@ -70,19 +110,23 @@ window.submitRequest = async function (event) {
       })
     });
 
-    if (!res.ok) throw new Error("submit failed");
+    if (!res.ok) {
+      console.log(await res.text());
+      throw new Error("submit failed");
+    }
 
-    showCustomSuccess(selectedFix);
-  } catch (e) {
-    error.textContent = TXT.sendError;
+    showSuccessMessage();
+  } catch (errorObject) {
+    console.error(errorObject);
+    error.textContent = "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.";
   }
-};
+}
 
-function showCustomSuccess(fix) {
-  const title = document.querySelector("#successCard h1");
-  const message = document.querySelector("#successCard p");
+function showSuccessMessage() {
+  const title = el("successTitle");
+  const message = el("successMessage");
 
-  if ((fix || "").toLowerCase().includes("gemini")) {
+  if (selectedFix.toLowerCase().includes("gemini")) {
     title.textContent = "تم استلام طلب Gemini بنجاح";
     message.textContent = "يرجى تفقد بريدك الإلكتروني خلال بضع ساعات، ستصلك تفاصيل اشتراك Gemini الخاص بك. في حال واجهت أي مشكلة، يرجى التواصل معنا عبر صفحتنا الرسمية.";
   } else {
@@ -90,29 +134,28 @@ function showCustomSuccess(fix) {
     message.textContent = "تفعيل اشتراك ChatGPT Plus قد يستغرق بضعة أيام. نرجو منكم عدم تكرار الرسائل على صفحاتنا، وسيصلكم بريد إلكتروني مباشرة فور جاهزية الاشتراك. شكرًا لصبركم وتفهمكم.";
   }
 
-  document.getElementById("formCard").classList.add("hidden");
-  document.getElementById("successCard").classList.remove("hidden");
+  el("formCard").classList.add("hidden");
+  el("successCard").classList.remove("hidden");
 }
 
-window.loginAdmin = function (event) {
+function loginAdmin(event) {
   event.preventDefault();
 
-  const username = document.getElementById("adminUsername").value;
-  const password = document.getElementById("adminPassword").value;
-  const error = document.getElementById("loginError");
+  const username = el("adminUsername").value.trim();
+  const password = el("adminPassword").value.trim();
 
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     localStorage.setItem("adminLoggedIn", "yes");
     window.location.href = "/admin";
   } else {
-    error.textContent = TXT.badLogin;
+    el("loginError").textContent = "اسم المستخدم أو كلمة المرور غير صحيحة.";
   }
-};
+}
 
-window.logoutAdmin = function () {
+function logoutAdmin() {
   localStorage.removeItem("adminLoggedIn");
   window.location.href = "/admin/login";
-};
+}
 
 async function loadSubmissions() {
   const res = await fetch(API + "?select=*&order=created_at.desc", {
@@ -125,29 +168,31 @@ async function loadSubmissions() {
   renderSubmissions();
 }
 
-window.setFilter = function (filter) {
+function setFilter(filter) {
   currentFilter = filter;
+
   document.querySelectorAll(".status-filter").forEach(function (btn) {
     btn.classList.remove("active");
   });
 
-  const btn = document.getElementById("filter-" + filter);
+  const btn = el("filter-" + filter);
   if (btn) btn.classList.add("active");
 
   renderSubmissions();
-};
+}
 
-window.setFixFilter = function (filter) {
+function setFixFilter(filter) {
   currentFixFilter = filter;
+
   document.querySelectorAll(".fix-filter").forEach(function (btn) {
     btn.classList.remove("active");
   });
 
-  const btn = document.getElementById("fix-" + filter);
+  const btn = el("fix-" + filter);
   if (btn) btn.classList.add("active");
 
   renderSubmissions();
-};
+}
 
 function renderStats() {
   const total = submissions.length;
@@ -164,18 +209,18 @@ function renderStats() {
     return x.status === "done";
   }).length;
 
-  if (document.getElementById("statTotal")) document.getElementById("statTotal").textContent = total;
-  if (document.getElementById("statGemini")) document.getElementById("statGemini").textContent = gemini;
-  if (document.getElementById("statChatgpt")) document.getElementById("statChatgpt").textContent = chatgpt;
-  if (document.getElementById("statUndone")) document.getElementById("statUndone").textContent = undone;
-  if (document.getElementById("statDone")) document.getElementById("statDone").textContent = done;
+  el("statTotal").textContent = total;
+  el("statGemini").textContent = gemini;
+  el("statChatgpt").textContent = chatgpt;
+  el("statUndone").textContent = undone;
+  el("statDone").textContent = done;
 }
 
 function renderSubmissions() {
-  const q = ((document.getElementById("searchInput") || {}).value || "").toLowerCase();
-  const tableBody = document.getElementById("tableBody");
-  const mobileCards = document.getElementById("mobileCards");
-  const emptyText = document.getElementById("emptyText");
+  const q = (el("searchInput") ? el("searchInput").value : "").toLowerCase();
+  const tableBody = el("tableBody");
+  const mobileCards = el("mobileCards");
+  const emptyText = el("emptyText");
 
   if (!tableBody || !mobileCards) return;
 
@@ -196,13 +241,13 @@ function renderSubmissions() {
 
   filtered.forEach(function (item) {
     const statusClass = item.status === "done" ? "done" : "undone";
-    const statusText = item.status === "done" ? TXT.done : TXT.undone;
+    const statusText = item.status === "done" ? "مكتمل" : "غير مكتمل";
     const created = new Date(item.created_at).toLocaleString();
 
     const actionHtml =
       item.status === "undone"
-        ? '<button class="done-btn" onclick="markDone(\'' + item.id + '\')">' + TXT.markDone + "</button>"
-        : '<span class="completed-text">' + TXT.completed + "</span>";
+        ? '<button class="done-btn" type="button" data-done="' + item.id + '">تحديد مكتمل</button>'
+        : '<span class="completed-text">تم الإنجاز</span>';
 
     tableBody.innerHTML +=
       "<tr><td>" +
@@ -210,7 +255,7 @@ function renderSubmissions() {
       "</td><td>" +
       (item.subscription_number || "-") +
       "</td><td>" +
-      item.selected_fix +
+      (item.selected_fix || "-") +
       '</td><td><span class="status ' +
       statusClass +
       '">' +
@@ -223,8 +268,8 @@ function renderSubmissions() {
 
     const mobileAction =
       item.status === "undone"
-        ? '<button class="done-btn full" onclick="markDone(\'' + item.id + '\')">' + TXT.markDone + "</button>"
-        : '<button class="completed-btn full">' + TXT.done + "</button>";
+        ? '<button class="done-btn full" type="button" data-done="' + item.id + '">تحديد مكتمل</button>'
+        : '<button class="completed-btn full" type="button">مكتمل</button>';
 
     mobileCards.innerHTML +=
       '<div class="submission-card"><div class="card-top"><span class="status ' +
@@ -238,16 +283,22 @@ function renderSubmissions() {
       "</p><p><strong>Subscription:</strong> " +
       (item.subscription_number || "-") +
       "</p><p><strong>Fix:</strong> " +
-      item.selected_fix +
+      (item.selected_fix || "-") +
       "</p>" +
       mobileAction +
       "</div>";
   });
 
+  document.querySelectorAll("[data-done]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      markDone(btn.getAttribute("data-done"));
+    });
+  });
+
   if (emptyText) emptyText.classList.toggle("hidden", filtered.length !== 0);
 }
 
-window.markDone = async function (id) {
+async function markDone(id) {
   await fetch(API + "?id=eq." + id, {
     method: "PATCH",
     headers: headers,
@@ -255,36 +306,32 @@ window.markDone = async function (id) {
   });
 
   await loadSubmissions();
-};
-
-function router() {
-  const path = window.location.pathname.replace(/\/$/, "") || "/";
-
-  document.getElementById("clientPage").classList.add("hidden");
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("adminPage").classList.add("hidden");
-
-  if (path === "/admin/login") {
-    document.getElementById("loginPage").classList.remove("hidden");
-    return;
-  }
-
-  if (path === "/admin") {
-    if (localStorage.getItem("adminLoggedIn") !== "yes") {
-      window.location.href = "/admin/login";
-      return;
-    }
-
-    document.getElementById("adminPage").classList.remove("hidden");
-    loadSubmissions();
-    return;
-  }
-
-  document.getElementById("clientPage").classList.remove("hidden");
 }
 
-router();
+document.addEventListener("DOMContentLoaded", function () {
+  route();
 
+  if (el("continueBtn")) el("continueBtn").addEventListener("click", showForm);
+  if (el("requestForm")) el("requestForm").addEventListener("submit", submitRequest);
+  if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
+  if (el("logoutBtn")) el("logoutBtn").addEventListener("click", logoutAdmin);
+  if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
 
+  document.querySelectorAll(".option").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      selectFix(btn, btn.getAttribute("data-fix"));
+    });
+  });
 
+  document.querySelectorAll(".status-filter").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      setFilter(btn.getAttribute("data-status"));
+    });
+  });
 
+  document.querySelectorAll(".fix-filter").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      setFixFilter(btn.getAttribute("data-fixfilter"));
+    });
+  });
+});
