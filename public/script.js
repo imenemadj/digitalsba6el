@@ -19,7 +19,7 @@ const headers = {
 const TXT = {
   needData: "\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0623\u0648 \u0631\u0642\u0645 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643.",
   needFix: "\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0623\u062d\u062f \u0627\u0644\u062d\u0644\u0648\u0644.",
-  sendError: "\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u0625\u0631\u0633\u0627\u0644. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.",
+  sendError: "\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u0625\u0631\u0633\u0627\u0644. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.",`n  duplicateEmail: "\u0644\u0642\u062f \u0642\u0645\u062a \u0628\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0645\u0633\u0628\u0642\u064b\u0627 \u0628\u0647\u0630\u0627 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.",
   badLogin: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629.",
   done: "\u0645\u0643\u062a\u0645\u0644",
   undone: "\u063a\u064a\u0631 \u0645\u0643\u062a\u0645\u0644",
@@ -59,8 +59,7 @@ window.submitRequest = async function (event) {
     return;
   }
 
-  try {
-    const res = await fetch(API, {
+  try {`n    if (email) {`n      const check = await fetch(API + "?select=id&email=eq." + encodeURIComponent(email), { method: "GET", headers: headers });`n      const existing = await check.json();`n      if (Array.isArray(existing) && existing.length > 0) {`n        error.textContent = TXT.duplicateEmail;`n        return;`n      }`n    }`n`n    const res = await fetch(API, {
       method: "POST",
       headers: headers,
       body: JSON.stringify({
@@ -270,3 +269,4 @@ function router() {
 }
 
 router();
+
