@@ -111,13 +111,14 @@ async function submitRequest(event) {
           method: "PATCH",
           headers,
           body: JSON.stringify({
-            selected_fix: selectedFix,
-            subscription_number: subscriptionNumber,
-            status: "undone",
-            change_note: "تم تغيير الحل",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
+  selected_fix: selectedFix,
+  subscription_number: subscriptionNumber,
+  status: "undone",
+  change_note: "تم تغيير الخطة",
+  plan_locked: true,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+})
         });
 
         if (!update.ok) throw new Error("update failed");
@@ -338,3 +339,4 @@ document.addEventListener("DOMContentLoaded", function () {
     btn.addEventListener("click", () => setFixFilter(btn.getAttribute("data-fixfilter")));
   });
 });
+
