@@ -68,7 +68,7 @@ function selectFix(button, fix) {
 async function submitRequest(event) {
   event.preventDefault();
 
-  const email = el("email").value.trim();
+  const email = el("email").value.trim().toLowerCase();
   const subscriptionNumber = el("subscriptionNumber").value.trim();
   const error = el("error");
 
@@ -86,7 +86,7 @@ async function submitRequest(event) {
 
   try {
     if (email) {
-      const check = await fetch(API + "?select=id&email=eq." + encodeURIComponent(email), {
+      const check = await fetch(API + "?select=id&email=ilike." + encodeURIComponent(email), {
         method: "GET",
         headers: headers
       });
@@ -335,3 +335,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
