@@ -21,14 +21,14 @@ function el(id) {
 }
 
 function hideAllPages() {
-  el("clientPage").classList.add("hidden");
-  el("loginPage").classList.add("hidden");
-  el("adminPage").classList.add("hidden");
+  ["clientPage", "loginPage", "adminPage"].forEach(id => {
+    const item = el(id);
+    if (item) item.classList.add("hidden");
+  });
 }
 
 function route() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
-
   hideAllPages();
 
   if (path === "/admin/login") {
@@ -58,7 +58,7 @@ function showForm() {
 function selectFix(button, fix) {
   selectedFix = fix;
 
-  document.querySelectorAll(".option").forEach(function (btn) {
+  document.querySelectorAll(".option").forEach(btn => {
     btn.classList.remove("selected");
   });
 
@@ -86,52 +86,78 @@ async function submitRequest(event) {
 
   try {
     if (email) {
-      const check = await fetch(API + "?select=id&email=ilike." + encodeURIComponent(email), {
+      const check = await fetch(API + "?select=id,selected_fix&email=ilike." + encodeURIComponent(email), {
         method: "GET",
-        headers: headers
+        headers
       });
 
       const existing = await check.json();
 
       if (Array.isArray(existing) && existing.length > 0) {
-        error.textContent = "لقد قمت بإرسال طلب مسبقًا بهذا البريد الإلكتروني.";
+        const currentFix = existing[0].selected_fix || "-";
+
+        const wantsChange = confirm(
+          "لقد قمت بإرسال طلب مسبقًا بهذا البريد الإلكتروني.\n\n" +
+          "الحل الحالي: " + currentFix + "\n\n" +
+          "هل تريد تغيير طريقة التعويض إلى الخيار الجديد؟"
+        );
+
+        if (!wantsChange) {
+          error.textContent = "تم الاحتفاظ بطلبك السابق بدون تغيير.";
+          return;
+        }
+
+        const update = await fetch(API + "?id=eq." + existing[0].id, {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            selected_fix: selectedFix,
+            subscription_number: subscriptionNumber,
+            status: "undone",
+            change_note: "تم تغيير الحل",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+        });
+
+        if (!update.ok) throw new Error("update failed");
+
+        showSuccessMessage(true);
         return;
       }
     }
 
     const res = await fetch(API, {
       method: "POST",
-      headers: headers,
+      headers,
       body: JSON.stringify({
-        email: email,
+        email,
         subscription_number: subscriptionNumber,
         selected_fix: selectedFix,
-        status: "undone"
+        status: "undone",
+        change_note: ""
       })
     });
 
-    if (!res.ok) {
-      console.log(await res.text());
-      throw new Error("submit failed");
-    }
+    if (!res.ok) throw new Error("submit failed");
 
-    showSuccessMessage();
-  } catch (errorObject) {
-    console.error(errorObject);
+    showSuccessMessage(false);
+  } catch (err) {
+    console.error(err);
     error.textContent = "حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.";
   }
 }
 
-function showSuccessMessage() {
+function showSuccessMessage(changed) {
   const title = el("successTitle");
   const message = el("successMessage");
 
   if (selectedFix.toLowerCase().includes("gemini")) {
-    title.textContent = "تم استلام طلب Gemini بنجاح";
-    message.textContent = "يرجى تفقد بريدك الإلكتروني خلال بضع ساعات، ستصلك تفاصيل اشتراك Gemini الخاص بك. في حال واجهت أي مشكلة، يرجى التواصل معنا عبر صفحتنا الرسمية.";
+    title.textContent = changed ? "تم تغيير طلبك إلى Gemini بنجاح" : "تم استلام طلب Gemini بنجاح";
+    message.textContent = "يرجى تفقد بريدك الإلكتروني، ستصلك دعوة لتفعيل الشهر الأول من اشتراك Gemini. وبعد انتهاء الشهر الأول، سنرسل لك دعوة جديدة للشهر الثاني. في حال واجهت أي مشكلة، يرجى التواصل معنا عبر صفحتنا الرسمية.";
   } else {
-    title.textContent = "تم استلام طلب ChatGPT Plus بنجاح";
-    message.textContent = "تفعيل اشتراك ChatGPT Plus قد يستغرق بضعة أيام. نرجو منكم عدم تكرار الرسائل على صفحاتنا، وسيصلكم بريد إلكتروني مباشرة فور جاهزية الاشتراك. شكرًا لصبركم وتفهمكم.";
+    title.textContent = changed ? "تم تغيير طلبك إلى ChatGPT Plus بنجاح" : "تم استلام طلب ChatGPT Plus بنجاح";
+    message.textContent = "سنقوم بالتواصل معك عبر صفحتنا أو عبر البريد الإلكتروني خلال بضعة أيام. يرجى عدم تكرار الرسائل، وسيصلك إشعار مباشرة فور جاهزية الاشتراك.";
   }
 
   el("formCard").classList.add("hidden");
@@ -160,7 +186,7 @@ function logoutAdmin() {
 async function loadSubmissions() {
   const res = await fetch(API + "?select=*&order=created_at.desc", {
     method: "GET",
-    headers: headers
+    headers
   });
 
   submissions = await res.json();
@@ -171,7 +197,7 @@ async function loadSubmissions() {
 function setFilter(filter) {
   currentFilter = filter;
 
-  document.querySelectorAll(".status-filter").forEach(function (btn) {
+  document.querySelectorAll(".status-filter").forEach(btn => {
     btn.classList.remove("active");
   });
 
@@ -184,7 +210,7 @@ function setFilter(filter) {
 function setFixFilter(filter) {
   currentFixFilter = filter;
 
-  document.querySelectorAll(".fix-filter").forEach(function (btn) {
+  document.querySelectorAll(".fix-filter").forEach(btn => {
     btn.classList.remove("active");
   });
 
@@ -196,24 +222,16 @@ function setFixFilter(filter) {
 
 function renderStats() {
   const total = submissions.length;
-  const gemini = submissions.filter(function (x) {
-    return (x.selected_fix || "").toLowerCase().includes("gemini");
-  }).length;
-  const chatgpt = submissions.filter(function (x) {
-    return (x.selected_fix || "").toLowerCase().includes("chatgpt");
-  }).length;
-  const undone = submissions.filter(function (x) {
-    return x.status === "undone";
-  }).length;
-  const done = submissions.filter(function (x) {
-    return x.status === "done";
-  }).length;
+  const gemini = submissions.filter(x => (x.selected_fix || "").toLowerCase().includes("gemini")).length;
+  const chatgpt = submissions.filter(x => (x.selected_fix || "").toLowerCase().includes("chatgpt")).length;
+  const undone = submissions.filter(x => x.status === "undone").length;
+  const done = submissions.filter(x => x.status === "done").length;
 
-  el("statTotal").textContent = total;
-  el("statGemini").textContent = gemini;
-  el("statChatgpt").textContent = chatgpt;
-  el("statUndone").textContent = undone;
-  el("statDone").textContent = done;
+  if (el("statTotal")) el("statTotal").textContent = total;
+  if (el("statGemini")) el("statGemini").textContent = gemini;
+  if (el("statChatgpt")) el("statChatgpt").textContent = chatgpt;
+  if (el("statUndone")) el("statUndone").textContent = undone;
+  if (el("statDone")) el("statDone").textContent = done;
 }
 
 function renderSubmissions() {
@@ -224,7 +242,7 @@ function renderSubmissions() {
 
   if (!tableBody || !mobileCards) return;
 
-  const filtered = submissions.filter(function (item) {
+  const filtered = submissions.filter(item => {
     const email = (item.email || "").toLowerCase();
     const subscription = (item.subscription_number || "").toLowerCase();
     const fixText = (item.selected_fix || "").toLowerCase();
@@ -239,60 +257,51 @@ function renderSubmissions() {
   tableBody.innerHTML = "";
   mobileCards.innerHTML = "";
 
-  filtered.forEach(function (item) {
+  filtered.forEach(item => {
     const statusClass = item.status === "done" ? "done" : "undone";
     const statusText = item.status === "done" ? "مكتمل" : "غير مكتمل";
     const created = new Date(item.created_at).toLocaleString();
+    const note = item.change_note || "-";
 
     const actionHtml =
       item.status === "undone"
-        ? '<button class="done-btn" type="button" data-done="' + item.id + '">تحديد مكتمل</button>'
-        : '<span class="completed-text">تم الإنجاز</span>';
+        ? `<button class="done-btn" type="button" data-done="${item.id}">تحديد مكتمل</button>`
+        : `<span class="completed-text">تم الإنجاز</span>`;
 
-    tableBody.innerHTML +=
-      "<tr><td>" +
-      (item.email || "-") +
-      "</td><td>" +
-      (item.subscription_number || "-") +
-      "</td><td>" +
-      (item.selected_fix || "-") +
-      '</td><td><span class="status ' +
-      statusClass +
-      '">' +
-      statusText +
-      "</span></td><td>" +
-      created +
-      "</td><td>" +
-      actionHtml +
-      "</td></tr>";
+    tableBody.innerHTML += `
+      <tr>
+        <td>${item.email || "-"}</td>
+        <td>${item.subscription_number || "-"}</td>
+        <td>${item.selected_fix || "-"}</td>
+        <td>${note}</td>
+        <td><span class="status ${statusClass}">${statusText}</span></td>
+        <td>${created}</td>
+        <td>${actionHtml}</td>
+      </tr>
+    `;
 
     const mobileAction =
       item.status === "undone"
-        ? '<button class="done-btn full" type="button" data-done="' + item.id + '">تحديد مكتمل</button>'
-        : '<button class="completed-btn full" type="button">مكتمل</button>';
+        ? `<button class="done-btn full" type="button" data-done="${item.id}">تحديد مكتمل</button>`
+        : `<button class="completed-btn full" type="button">مكتمل</button>`;
 
-    mobileCards.innerHTML +=
-      '<div class="submission-card"><div class="card-top"><span class="status ' +
-      statusClass +
-      '">' +
-      statusText +
-      "</span><span>" +
-      created +
-      "</span></div><p><strong>Email:</strong> " +
-      (item.email || "-") +
-      "</p><p><strong>Subscription:</strong> " +
-      (item.subscription_number || "-") +
-      "</p><p><strong>Fix:</strong> " +
-      (item.selected_fix || "-") +
-      "</p>" +
-      mobileAction +
-      "</div>";
+    mobileCards.innerHTML += `
+      <div class="submission-card">
+        <div class="card-top">
+          <span class="status ${statusClass}">${statusText}</span>
+          <span>${created}</span>
+        </div>
+        <p><strong>Email:</strong> ${item.email || "-"}</p>
+        <p><strong>Subscription:</strong> ${item.subscription_number || "-"}</p>
+        <p><strong>Fix:</strong> ${item.selected_fix || "-"}</p>
+        <p><strong>Note:</strong> ${note}</p>
+        ${mobileAction}
+      </div>
+    `;
   });
 
-  document.querySelectorAll("[data-done]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      markDone(btn.getAttribute("data-done"));
-    });
+  document.querySelectorAll("[data-done]").forEach(btn => {
+    btn.addEventListener("click", () => markDone(btn.getAttribute("data-done")));
   });
 
   if (emptyText) emptyText.classList.toggle("hidden", filtered.length !== 0);
@@ -301,7 +310,7 @@ function renderSubmissions() {
 async function markDone(id) {
   await fetch(API + "?id=eq." + id, {
     method: "PATCH",
-    headers: headers,
+    headers,
     body: JSON.stringify({ status: "done" })
   });
 
@@ -317,22 +326,15 @@ document.addEventListener("DOMContentLoaded", function () {
   if (el("logoutBtn")) el("logoutBtn").addEventListener("click", logoutAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
 
-  document.querySelectorAll(".option").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      selectFix(btn, btn.getAttribute("data-fix"));
-    });
+  document.querySelectorAll(".option").forEach(btn => {
+    btn.addEventListener("click", () => selectFix(btn, btn.getAttribute("data-fix")));
   });
 
-  document.querySelectorAll(".status-filter").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      setFilter(btn.getAttribute("data-status"));
-    });
+  document.querySelectorAll(".status-filter").forEach(btn => {
+    btn.addEventListener("click", () => setFilter(btn.getAttribute("data-status")));
   });
 
-  document.querySelectorAll(".fix-filter").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      setFixFilter(btn.getAttribute("data-fixfilter"));
-    });
+  document.querySelectorAll(".fix-filter").forEach(btn => {
+    btn.addEventListener("click", () => setFixFilter(btn.getAttribute("data-fixfilter")));
   });
 });
-
