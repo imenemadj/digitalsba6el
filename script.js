@@ -188,7 +188,7 @@ async function submitChangeOrNew(event) {
 function showSuccessMessage(changed) {
   if (selectedFix.toLowerCase().includes("gemini")) {
     el("successTitle").textContent = changed ? "تم تغيير طلبك إلى Gemini Pro بنجاح" : "تم استلام طلب Gemini Pro بنجاح";
-    el("successMessage").textContent = "يرجى تفقد بريدك الإلكتروني. ستصلك دعوة لتفعيل الشهر الأول من Gemini Pro خلال بضع ساعات. وبعد انتهاء الشهر الأول، سنرسل لك دعوة جديدة للشهر الثاني.";
+    el("successMessage").textContent = "يرجى تفقد بريدك الإلكتروني. ستصلك دعوة لتفعيل الشهر الأول من Gemini Pro خلال بضع ساعات. وبعد انتهاء كل شهر، سنرسل لك دعوة جديدة حتى اكتمال أربعة أشهر.";
   } else {
     el("successTitle").textContent = changed ? "تم تغيير طلبك إلى ChatGPT Plus بنجاح" : "تم استلام طلب ChatGPT Plus بنجاح";
     el("successMessage").textContent = "سنقوم بالتواصل معك عبر صفحتنا أو عبر البريد الإلكتروني خلال بضعة أيام. يرجى عدم تكرار الرسائل، وسيصلك إشعار فور جاهزية الاشتراك.";
@@ -362,3 +362,4 @@ document.addEventListener("DOMContentLoaded", function () {
     btn.addEventListener("click", () => setFixFilter(btn.getAttribute("data-fixfilter")));
   });
 });
+
