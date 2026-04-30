@@ -387,30 +387,49 @@ document.addEventListener("DOMContentLoaded", function () {
   route();
 
   document.body.addEventListener("click", function (event) {
-    const target = event.target;
+  const target = event.target;
+  const button = target.closest("button");
 
-    if (target.id === "continueBtn") showForm();
-    if (target.id === "changeFixBtn") startChangeFix();
-    if (target.id === "logoutBtn") logoutAdmin();
+  if (!button) return;
 
-    if (target.classList.contains("option")) {
-      selectFix(target, target.getAttribute("data-fix"));
-    }
+  if (button.id === "continueBtn") {
+    showForm();
+    return;
+  }
 
-    if (target.classList.contains("status-filter")) {
-      setFilter(target.getAttribute("data-status"));
-    }
+  if (button.id === "changeFixBtn") {
+    startChangeFix();
+    return;
+  }
 
-    if (target.classList.contains("fix-filter")) {
-      setFixFilter(target.getAttribute("data-fixfilter"));
-    }
+  if (button.id === "logoutBtn") {
+    logoutAdmin();
+    return;
+  }
 
-    if (target.hasAttribute("data-done")) {
-      markDone(target.getAttribute("data-done"));
-    }
-  });
+  if (button.classList.contains("option")) {
+    selectFix(button, button.getAttribute("data-fix"));
+    return;
+  }
+
+  if (button.classList.contains("status-filter")) {
+    setFilter(button.getAttribute("data-status"));
+    return;
+  }
+
+  if (button.classList.contains("fix-filter")) {
+    setFixFilter(button.getAttribute("data-fixfilter"));
+    return;
+  }
+
+  if (button.hasAttribute("data-done")) {
+    markDone(button.getAttribute("data-done"));
+    return;
+  }
+});
 
   if (el("requestForm")) el("requestForm").addEventListener("submit", submitChangeOrNew);
   if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
 });
+
