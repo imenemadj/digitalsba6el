@@ -28,7 +28,7 @@ function showOnlyClientCard(cardId) {
     if (item) item.classList.add("hidden");
   });
 
-  el(cardId).classList.remove("hidden");
+  if (el(cardId)) el(cardId).classList.remove("hidden");
 }
 
 function route() {
@@ -64,7 +64,11 @@ function showForm() {
 
 function selectFix(button, fix) {
   selectedFix = fix;
-  document.querySelectorAll(".option").forEach(btn => btn.classList.remove("selected"));
+
+  document.querySelectorAll(".option").forEach(btn => {
+    btn.classList.remove("selected");
+  });
+
   button.classList.add("selected");
 }
 
@@ -217,29 +221,54 @@ function logoutAdmin() {
 }
 
 async function loadSubmissions() {
-  const res = await fetch(API + "?select=*&order=created_at.desc", {
-    method: "GET",
-    headers
-  });
+  const emptyText = el("emptyText");
+  if (emptyText) {
+    emptyText.textContent = "جاري تحميل الطلبات...";
+    emptyText.classList.remove("hidden");
+  }
 
-  submissions = await res.json();
-  renderStats();
-  renderSubmissions();
+  try {
+    const res = await fetch(API + "?select=id,email,subscription_number,selected_fix,status,change_note,created_at,plan_locked&order=created_at.desc", {
+      method: "GET",
+      headers,
+      cache: "no-store"
+    });
+
+    submissions = await res.json();
+    renderStats();
+    renderSubmissions();
+  } catch (err) {
+    console.error(err);
+    if (emptyText) {
+      emptyText.textContent = "حدث خطأ أثناء تحميل الطلبات.";
+      emptyText.classList.remove("hidden");
+    }
+  }
 }
 
 function setFilter(filter) {
   currentFilter = filter;
-  document.querySelectorAll(".status-filter").forEach(btn => btn.classList.remove("active"));
+
+  document.querySelectorAll(".status-filter").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
   const btn = el("filter-" + filter);
   if (btn) btn.classList.add("active");
+
   renderSubmissions();
 }
 
 function setFixFilter(filter) {
   currentFixFilter = filter;
-  document.querySelectorAll(".fix-filter").forEach(btn => btn.classList.remove("active"));
+
+  document.querySelectorAll(".fix-filter").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
   const btn = el("fix-" + filter);
   if (btn) btn.classList.add("active");
+
   renderSubmissions();
 }
 
@@ -323,43 +352,65 @@ function renderSubmissions() {
     `;
   });
 
-  document.querySelectorAll("[data-done]").forEach(btn => {
-    btn.addEventListener("click", () => markDone(btn.getAttribute("data-done")));
-  });
-
-  if (emptyText) emptyText.classList.toggle("hidden", filtered.length !== 0);
+  if (emptyText) {
+    emptyText.textContent = "لا توجد طلبات.";
+    emptyText.classList.toggle("hidden", filtered.length !== 0);
+  }
 }
 
 async function markDone(id) {
-  await fetch(API + "?id=eq." + id, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ status: "done" })
+  const btns = document.querySelectorAll(`[data-done="${id}"]`);
+  btns.forEach(btn => {
+    btn.disabled = true;
+    btn.textContent = "جاري التحديث...";
   });
 
-  await loadSubmissions();
+  try {
+    await fetch(API + "?id=eq." + id, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ status: "done" })
+    });
+
+    const item = submissions.find(x => x.id === id);
+    if (item) item.status = "done";
+
+    renderStats();
+    renderSubmissions();
+  } catch (err) {
+    console.error(err);
+    await loadSubmissions();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   route();
 
-  if (el("continueBtn")) el("continueBtn").addEventListener("click", showForm);
+  document.body.addEventListener("click", function (event) {
+    const target = event.target;
+
+    if (target.id === "continueBtn") showForm();
+    if (target.id === "changeFixBtn") startChangeFix();
+    if (target.id === "logoutBtn") logoutAdmin();
+
+    if (target.classList.contains("option")) {
+      selectFix(target, target.getAttribute("data-fix"));
+    }
+
+    if (target.classList.contains("status-filter")) {
+      setFilter(target.getAttribute("data-status"));
+    }
+
+    if (target.classList.contains("fix-filter")) {
+      setFixFilter(target.getAttribute("data-fixfilter"));
+    }
+
+    if (target.hasAttribute("data-done")) {
+      markDone(target.getAttribute("data-done"));
+    }
+  });
+
   if (el("requestForm")) el("requestForm").addEventListener("submit", submitChangeOrNew);
-  if (el("changeFixBtn")) el("changeFixBtn").addEventListener("click", startChangeFix);
   if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
-  if (el("logoutBtn")) el("logoutBtn").addEventListener("click", logoutAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
-
-  document.querySelectorAll(".option").forEach(btn => {
-    btn.addEventListener("click", () => selectFix(btn, btn.getAttribute("data-fix")));
-  });
-
-  document.querySelectorAll(".status-filter").forEach(btn => {
-    btn.addEventListener("click", () => setFilter(btn.getAttribute("data-status")));
-  });
-
-  document.querySelectorAll(".fix-filter").forEach(btn => {
-    btn.addEventListener("click", () => setFixFilter(btn.getAttribute("data-fixfilter")));
-  });
 });
-
