@@ -192,7 +192,7 @@ async function submitChangeOrNew(event) {
 function showSuccessMessage(changed) {
   if (selectedFix.toLowerCase().includes("gemini")) {
     el("successTitle").textContent = changed ? "تم تغيير طلبك إلى Gemini Pro بنجاح" : "تم استلام طلب Gemini Pro بنجاح";
-    el("successMessage").textContent = "يرجى تفقد بريدك الإلكتروني. ستصلك دعوة لتفعيل الشهر الأول من Gemini Pro خلال بضع ساعات. وبعد انتهاء كل شهر، سنرسل لك دعوة جديدة حتى اكتمال أربعة أشهر.";
+    el("successMessage").textContent = "يرجى تفقد بريدك الإلكتروني خلال بضع ساعات. ستصلك دعوة باسم Google Family Invitation، يرجى قبول الدعوة لبدء تفعيل اشتراك Gemini Pro الخاص بك. وبعد انتهاء كل شهر، سنرسل لك دعوة جديدة حتى اكتمال أربعة أشهر.";
   } else {
     el("successTitle").textContent = changed ? "تم تغيير طلبك إلى ChatGPT Plus بنجاح" : "تم استلام طلب ChatGPT Plus بنجاح";
     el("successMessage").textContent = "سنقوم بالتواصل معك عبر صفحتنا أو عبر البريد الإلكتروني خلال بضعة أيام. يرجى عدم تكرار الرسائل، وسيصلك إشعار فور جاهزية الاشتراك.";
@@ -432,4 +432,5 @@ document.addEventListener("DOMContentLoaded", function () {
   if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
 });
+
 
