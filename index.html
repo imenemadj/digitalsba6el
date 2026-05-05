@@ -87,14 +87,39 @@
 </section>
 </main>
 
-<main id="adminPage" class="admin-page hidden rtl">
+<main id="adminMenuPage" class="admin-page hidden rtl">
 <header class="admin-header">
 <img src="/icons/logo.png?v=9999" class="admin-logo" onerror="this.style.display='none'">
 <button class="logout-btn" id="logoutBtn" type="button">تسجيل الخروج</button>
 </header>
 
-<section class="admin-content">
+<section class="admin-content center">
 <h1>لوحة الإدارة</h1>
+<div class="menu-buttons">
+<button class="menu-btn" id="subscriptionsBtn" type="button">
+<div class="menu-icon">📋</div>
+<strong>جميع الاشتراكات</strong>
+<small>عرض وإدارة جميع طلبات الاشتراك</small>
+</button>
+
+<button class="menu-btn" id="refundsBtn" type="button">
+<div class="menu-icon">💰</div>
+<strong>طلبات الاسترداد</strong>
+<small>عرض وإدارة طلبات استرداد الأموال</small>
+</button>
+</div>
+</section>
+</main>
+
+<main id="adminSubscriptionsPage" class="admin-page hidden rtl">
+<header class="admin-header">
+<button class="back-btn" id="backToMenuBtn" type="button">← العودة</button>
+<img src="/icons/logo.png?v=9999" class="admin-logo" onerror="this.style.display='none'">
+<button class="logout-btn" id="logoutBtn2" type="button">تسجيل الخروج</button>
+</header>
+
+<section class="admin-content">
+<h1>جميع الاشتراكات</h1>
 
 <div class="stats-grid">
 <div class="stat-card"><span>إجمالي الطلبات</span><strong id="statTotal">0</strong></div>
@@ -107,16 +132,18 @@
 <div class="toolbar">
 <input id="searchInput" class="search-input" placeholder="البحث بالبريد أو رقم الاشتراك">
 
-<div class="filters">
-<button class="status-filter active" type="button" data-status="all" id="filter-all">الكل</button>
-<button class="status-filter" type="button" data-status="undone" id="filter-undone">غير مكتمل</button>
-<button class="status-filter" type="button" data-status="done" id="filter-done">مكتمل</button>
-</div>
+<div class="dropdown-filters">
+<select id="statusFilter" class="dropdown-select">
+<option value="all">الكل</option>
+<option value="undone">غير مكتمل</option>
+<option value="done">مكتمل</option>
+</select>
 
-<div class="filters">
-<button class="fix-filter active" type="button" data-fixfilter="all" id="fix-all">الكل</button>
-<button class="fix-filter" type="button" data-fixfilter="gemini" id="fix-gemini">Gemini</button>
-<button class="fix-filter" type="button" data-fixfilter="chatgpt" id="fix-chatgpt">ChatGPT</button>
+<select id="serviceFilter" class="dropdown-select">
+<option value="all">الكل</option>
+<option value="gemini">Gemini</option>
+<option value="chatgpt">ChatGPT</option>
+</select>
 </div>
 </div>
 
@@ -138,6 +165,88 @@
 
 <div id="mobileCards" class="mobile-cards"></div>
 <p id="emptyText" class="empty hidden">لا توجد طلبات.</p>
+</section>
+</main>
+
+<main id="adminRefundsPage" class="admin-page hidden rtl">
+<header class="admin-header">
+<button class="back-btn" id="backToMenuBtn2" type="button">← العودة</button>
+<img src="/icons/logo.png?v=9999" class="admin-logo" onerror="this.style.display='none'">
+<button class="logout-btn" id="logoutBtn3" type="button">تسجيل الخروج</button>
+</header>
+
+<section class="admin-content">
+<h1>طلبات الاسترداد</h1>
+
+<div class="stats-grid">
+<div class="stat-card"><span>إجمالي الطلبات</span><strong id="refundStatTotal">0</strong></div>
+<div class="stat-card"><span>غير مكتمل</span><strong id="refundStatUndone">0</strong></div>
+<div class="stat-card"><span>مكتمل</span><strong id="refundStatDone">0</strong></div>
+</div>
+
+<div class="toolbar">
+<input id="refundSearchInput" class="search-input" placeholder="البحث بالبريد أو RIP">
+
+<div class="dropdown-filters">
+<select id="refundStatusFilter" class="dropdown-select">
+<option value="all">الكل</option>
+<option value="undone">غير مكتمل</option>
+<option value="done">مكتمل</option>
+</select>
+</div>
+</div>
+
+<div class="desktop-table">
+<table>
+<thead>
+<tr>
+<th>البريد</th>
+<th>RIP</th>
+<th>الحالة</th>
+<th>التاريخ</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody id="refundTableBody"></tbody>
+</table>
+</div>
+
+<div id="refundMobileCards" class="mobile-cards"></div>
+<p id="refundEmptyText" class="empty hidden">لا توجد طلبات استرداد.</p>
+</section>
+</main>
+
+<main id="refundApplicationPage" class="page hidden rtl">
+<img src="/icons/logo.png?v=9999" class="logo" onerror="this.style.display='none'">
+
+<section class="card">
+<h1>طلب استرداد الأموال</h1>
+<p class="muted">أدخل بريدك الإلكتروني ورقم RIP الخاص بك لطلب استرداد الأموال.</p>
+
+<form id="refundForm">
+<label>البريد الإلكتروني</label>
+<input id="refundEmail" type="email" placeholder="example@email.com" required>
+<p class="muted" style="font-size: 13px; margin-top: -8px; margin-bottom: 8px;">يرجى استخدام نفس البريد الإلكتروني الذي استخدمته لاشتراك ChatGPT Plus</p>
+
+<label>رقم RIP</label>
+<input id="refundRip" type="text" inputmode="numeric" placeholder="أدخل 20 رقم فقط" maxlength="20" required>
+<p class="muted" style="font-size: 13px;">يجب أن يكون رقم RIP مكون من 20 رقم فقط (أرقام فقط بدون أحرف أو رموز)</p>
+
+<p id="refundError" class="error"></p>
+<button class="primary-btn" type="submit">إرسال الطلب</button>
+</form>
+</section>
+
+<section id="refundSuccessCard" class="card center hidden">
+<div class="success-icon">✓</div>
+<h1>تم</h1>
+<p>سيتم استرداد المبلغ المتبقي من اشتراككم خلال ساعات قليلة.</p>
+</section>
+
+<section id="refundDuplicateCard" class="card center hidden">
+<div class="success-icon warning-icon">!</div>
+<h1>لديك طلب سابق</h1>
+<p>لقد قمت بإرسال طلب استرداد مسبقًا بهذا البريد الإلكتروني.</p>
 </section>
 </main>
 

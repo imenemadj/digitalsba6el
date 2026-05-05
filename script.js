@@ -1,6 +1,7 @@
 ﻿const SUPABASE_URL = "https://vbkhiecpopyjkcraykcr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_E-BQWEsInw0-zcJylvgCMg_mA0m1ZlA";
 const API = SUPABASE_URL + "/rest/v1/submissions";
+const REFUND_API = SUPABASE_URL + "/rest/v1/refund_requests";
 
 const ADMIN_USERNAME = "Admin";
 const ADMIN_PASSWORD = "Admin@2026";
@@ -9,8 +10,10 @@ let selectedFix = "";
 let duplicateEmail = "";
 let duplicateId = "";
 let submissions = [];
+let refundRequests = [];
 let currentFilter = "all";
 let currentFixFilter = "all";
+let currentRefundFilter = "all";
 
 const headers = {
   apikey: SUPABASE_KEY,
@@ -34,7 +37,7 @@ function showOnlyClientCard(cardId) {
 function route() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
 
-  ["clientPage", "loginPage", "adminPage"].forEach(id => {
+  ["clientPage", "loginPage", "adminMenuPage", "adminSubscriptionsPage", "adminRefundsPage", "refundApplicationPage"].forEach(id => {
     const page = el(id);
     if (page) page.classList.add("hidden");
   });
@@ -50,8 +53,34 @@ function route() {
       return;
     }
 
-    el("adminPage").classList.remove("hidden");
+    el("adminMenuPage").classList.remove("hidden");
+    return;
+  }
+
+  if (path === "/admin/subscriptions") {
+    if (localStorage.getItem("adminLoggedIn") !== "yes") {
+      window.location.href = "/admin/login";
+      return;
+    }
+
+    el("adminSubscriptionsPage").classList.remove("hidden");
     loadSubmissions();
+    return;
+  }
+
+  if (path === "/admin/refunds") {
+    if (localStorage.getItem("adminLoggedIn") !== "yes") {
+      window.location.href = "/admin/login";
+      return;
+    }
+
+    el("adminRefundsPage").classList.remove("hidden");
+    loadRefundRequests();
+    return;
+  }
+
+  if (path === "/refundapplication") {
+    el("refundApplicationPage").classList.remove("hidden");
     return;
   }
 
@@ -248,28 +277,17 @@ async function loadSubmissions() {
 
 function setFilter(filter) {
   currentFilter = filter;
-
-  document.querySelectorAll(".status-filter").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  const btn = el("filter-" + filter);
-  if (btn) btn.classList.add("active");
-
   renderSubmissions();
 }
 
 function setFixFilter(filter) {
   currentFixFilter = filter;
-
-  document.querySelectorAll(".fix-filter").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  const btn = el("fix-" + filter);
-  if (btn) btn.classList.add("active");
-
   renderSubmissions();
+}
+
+function setRefundFilter(filter) {
+  currentRefundFilter = filter;
+  renderRefundRequests();
 }
 
 function renderStats() {
@@ -383,6 +401,204 @@ async function markDone(id) {
   }
 }
 
+async function markRefundDone(id) {
+  const btns = document.querySelectorAll(`[data-refund-done="${id}"]`);
+  btns.forEach(btn => {
+    btn.disabled = true;
+    btn.textContent = "جاري التحديث...";
+  });
+
+  try {
+    await fetch(REFUND_API + "?id=eq." + id, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ status: "done" })
+    });
+
+    const item = refundRequests.find(x => x.id === id);
+    if (item) item.status = "done";
+
+    renderRefundStats();
+    renderRefundRequests();
+  } catch (err) {
+    console.error(err);
+    await loadRefundRequests();
+  }
+}
+
+async function loadRefundRequests() {
+  const emptyText = el("refundEmptyText");
+  if (emptyText) {
+    emptyText.textContent = "جاري تحميل طلبات الاسترداد...";
+    emptyText.classList.remove("hidden");
+  }
+
+  try {
+    const res = await fetch(REFUND_API + "?select=id,email,rip,status,created_at&order=created_at.desc", {
+      method: "GET",
+      headers,
+      cache: "no-store"
+    });
+
+    refundRequests = await res.json();
+    renderRefundStats();
+    renderRefundRequests();
+  } catch (err) {
+    console.error(err);
+    if (emptyText) {
+      emptyText.textContent = "حدث خطأ أثناء تحميل طلبات الاسترداد.";
+      emptyText.classList.remove("hidden");
+    }
+  }
+}
+
+function renderRefundStats() {
+  const total = refundRequests.length;
+  const undone = refundRequests.filter(x => x.status === "undone").length;
+  const done = refundRequests.filter(x => x.status === "done").length;
+
+  if (el("refundStatTotal")) el("refundStatTotal").textContent = total;
+  if (el("refundStatUndone")) el("refundStatUndone").textContent = undone;
+  if (el("refundStatDone")) el("refundStatDone").textContent = done;
+}
+
+function renderRefundRequests() {
+  const q = (el("refundSearchInput") ? el("refundSearchInput").value : "").toLowerCase();
+  const tableBody = el("refundTableBody");
+  const mobileCards = el("refundMobileCards");
+  const emptyText = el("refundEmptyText");
+
+  if (!tableBody || !mobileCards) return;
+
+  const filtered = refundRequests.filter(item => {
+    const email = (item.email || "").toLowerCase();
+    const rip = (item.rip || "").toLowerCase();
+
+    return (
+      (email.includes(q) || rip.includes(q)) &&
+      (currentRefundFilter === "all" || item.status === currentRefundFilter)
+    );
+  });
+
+  tableBody.innerHTML = "";
+  mobileCards.innerHTML = "";
+
+  filtered.forEach(item => {
+    const statusClass = item.status === "done" ? "done" : "undone";
+    const statusText = item.status === "done" ? "مكتمل" : "غير مكتمل";
+    const created = new Date(item.created_at).toLocaleString();
+
+    const actionHtml =
+      item.status === "undone"
+        ? `<button class="done-btn" type="button" data-refund-done="${item.id}">تحديد مكتمل</button>`
+        : `<span class="completed-text">تم الإنجاز</span>`;
+
+    tableBody.innerHTML += `
+      <tr>
+        <td>${item.email || "-"}</td>
+        <td>${item.rip || "-"}</td>
+        <td><span class="status ${statusClass}">${statusText}</span></td>
+        <td>${created}</td>
+        <td>${actionHtml}</td>
+      </tr>
+    `;
+
+    const mobileAction =
+      item.status === "undone"
+        ? `<button class="done-btn full" type="button" data-refund-done="${item.id}">تحديد مكتمل</button>`
+        : `<button class="completed-btn full" type="button">مكتمل</button>`;
+
+    mobileCards.innerHTML += `
+      <div class="submission-card">
+        <div class="card-top">
+          <span class="status ${statusClass}">${statusText}</span>
+          <span>${created}</span>
+        </div>
+        <p><strong>Email:</strong> ${item.email || "-"}</p>
+        <p><strong>RIP:</strong> ${item.rip || "-"}</p>
+        ${mobileAction}
+      </div>
+    `;
+  });
+
+  if (emptyText) {
+    emptyText.textContent = "لا توجد طلبات استرداد.";
+    emptyText.classList.toggle("hidden", filtered.length !== 0);
+  }
+}
+
+async function submitRefundRequest(event) {
+  event.preventDefault();
+
+  const email = el("refundEmail").value.trim().toLowerCase();
+  const rip = el("refundRip").value.trim();
+  const error = el("refundError");
+
+  error.textContent = "";
+
+  if (!email) {
+    error.textContent = "يرجى إدخال البريد الإلكتروني.";
+    return;
+  }
+
+  if (!email.includes('@')) {
+    error.textContent = "يرجى إدخال بريد إلكتروني صحيح.";
+    return;
+  }
+
+  if (!rip) {
+    error.textContent = "يرجى إدخال رقم RIP.";
+    return;
+  }
+
+  if (rip.length !== 20) {
+    error.textContent = "يجب أن يكون رقم RIP مكون من 20 رقم بالضبط.";
+    return;
+  }
+
+  if (!/^\d{20}$/.test(rip)) {
+    error.textContent = "رقم RIP يجب أن يحتوي على أرقام فقط بدون أحرف أو رموز.";
+    return;
+  }
+
+  try {
+    const check = await fetch(REFUND_API + "?select=id,email&email=ilike." + encodeURIComponent(email), {
+      method: "GET",
+      headers
+    });
+
+    const existing = await check.json();
+
+    if (Array.isArray(existing) && existing.length > 0) {
+      el("refundApplicationPage").querySelector(".card").classList.add("hidden");
+      el("refundDuplicateCard").classList.remove("hidden");
+      return;
+    }
+
+    const res = await fetch(REFUND_API, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        email,
+        rip,
+        status: "undone"
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Server error:", errorText);
+      throw new Error("submit failed");
+    }
+
+    el("refundApplicationPage").querySelector(".card").classList.add("hidden");
+    el("refundSuccessCard").classList.remove("hidden");
+  } catch (err) {
+    console.error(err);
+    error.textContent = "حدث خطأ أثناء الإرسال. يرجى التأكد من أن جدول refund_requests موجود في Supabase والمحاولة مرة أخرى.";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   route();
 
@@ -402,8 +618,23 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  if (button.id === "logoutBtn") {
+  if (button.id === "logoutBtn" || button.id === "logoutBtn2" || button.id === "logoutBtn3") {
     logoutAdmin();
+    return;
+  }
+
+  if (button.id === "subscriptionsBtn") {
+    window.location.href = "/admin/subscriptions";
+    return;
+  }
+
+  if (button.id === "refundsBtn") {
+    window.location.href = "/admin/refunds";
+    return;
+  }
+
+  if (button.id === "backToMenuBtn" || button.id === "backToMenuBtn2") {
+    window.location.href = "/admin";
     return;
   }
 
@@ -412,18 +643,13 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  if (button.classList.contains("status-filter")) {
-    setFilter(button.getAttribute("data-status"));
-    return;
-  }
-
-  if (button.classList.contains("fix-filter")) {
-    setFixFilter(button.getAttribute("data-fixfilter"));
-    return;
-  }
-
   if (button.hasAttribute("data-done")) {
     markDone(button.getAttribute("data-done"));
+    return;
+  }
+
+  if (button.hasAttribute("data-refund-done")) {
+    markRefundDone(button.getAttribute("data-refund-done"));
     return;
   }
 });
@@ -431,6 +657,18 @@ document.addEventListener("DOMContentLoaded", function () {
   if (el("requestForm")) el("requestForm").addEventListener("submit", submitChangeOrNew);
   if (el("loginForm")) el("loginForm").addEventListener("submit", loginAdmin);
   if (el("searchInput")) el("searchInput").addEventListener("input", renderSubmissions);
+  if (el("statusFilter")) el("statusFilter").addEventListener("change", (e) => setFilter(e.target.value));
+  if (el("serviceFilter")) el("serviceFilter").addEventListener("change", (e) => setFixFilter(e.target.value));
+  if (el("refundSearchInput")) el("refundSearchInput").addEventListener("input", renderRefundRequests);
+  if (el("refundStatusFilter")) el("refundStatusFilter").addEventListener("change", (e) => setRefundFilter(e.target.value));
+  if (el("refundForm")) el("refundForm").addEventListener("submit", submitRefundRequest);
+  
+  // Prevent non-numeric input in RIP field
+  if (el("refundRip")) {
+    el("refundRip").addEventListener("input", function(e) {
+      this.value = this.value.replace(/\D/g, '').slice(0, 20);
+    });
+  }
 });
 
 
